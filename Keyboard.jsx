@@ -7,7 +7,7 @@ import React from 'react'
 import { useGLTF } from '@react-three/drei'
 
 export function Model(props) {
-  const { nodes, materials } = useGLTF('/keyboard.glb')
+  const { nodes, materials } = useGLTF('/models/keyboard.glb')
   return (
     <group {...props} dispose={null}>
       <mesh geometry={nodes.space.geometry} material={materials.keys_light} position={[-0.108, -0.017, 0.425]} rotation={[0.03, 0, 0]} />
@@ -37,7 +37,7 @@ export function Model(props) {
       <mesh geometry={nodes.i.geometry} material={materials.keys_light} position={[0.214, 0.002, -0.211]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.o.geometry} material={materials.keys_light} position={[0.429, 0.002, -0.211]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.p.geometry} material={materials.keys_light} position={[0.645, 0.002, -0.211]} rotation={[0.03, 0, 0]} />
-      <mesh geometry={nodes[''].geometry} material={materials.keys_light} position={[0.86, 0.002, -0.211]} rotation={[0.03, 0, 0]} />
+      {nodes[''] && <mesh geometry={nodes[''].geometry} material={materials.keys_light} position={[0.86, 0.002, -0.211]} rotation={[0.03, 0, 0]} />}
       <mesh geometry={nodes._1.geometry} material={materials.keys_light} position={[1.075, 0.002, -0.211]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.backspace.geometry} material={materials.keys_light} position={[1.348, 0.002, -0.211]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.music.geometry} material={materials.keys_dark} position={[1.616, 0.002, -0.211]} rotation={[0.03, 0, 0]} />
