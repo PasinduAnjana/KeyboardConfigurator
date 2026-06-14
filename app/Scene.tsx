@@ -6,11 +6,12 @@ import {
   useMemo,
   useEffect,
   useLayoutEffect,
+  useCallback,
   Suspense,
   type ElementRef,
 } from "react";
 import * as THREE from "three";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
 import {
   Environment,
   OrbitControls,
@@ -20,7 +21,77 @@ import {
 import { Model } from "@/Keyboard";
 import ConfiguratorPanel, {
   type KeyColors,
+  MobileWidget,
 } from "@/app/ConfiguratorPanel";
+
+const PRESS_DEPTH = 0.07;
+
+const CODE_TO_KEY: Record<string, string> = {
+  Space: "space",
+  Escape: "esc",
+  Backquote: "tilda",
+  Digit1: "1",
+  Digit2: "2",
+  Digit3: "3",
+  Digit4: "4",
+  Digit5: "5",
+  Digit6: "6",
+  Digit7: "7",
+  Digit8: "8",
+  Digit9: "9",
+  Digit0: "0",
+  Minus: "minus",
+  Equal: "plus",
+  BracketLeft: "left_bracket",
+  BracketRight: "right_bracket",
+  Backslash: "pipe",
+  Semicolon: "semicolon",
+  Quote: "apostrophe",
+  Comma: "comma",
+  Period: "fullstop",
+  Slash: "slash",
+  Backspace: "backspace",
+  Delete: "del",
+  Enter: "enter",
+  ShiftLeft: "shift_l",
+  ShiftRight: "shift_r",
+  CapsLock: "caps",
+  Tab: "tab",
+  ControlLeft: "ctrl_l",
+  AltLeft: "alt_l",
+  AltRight: "alt_r",
+  MetaLeft: "super",
+  ArrowUp: "up",
+  ArrowDown: "down",
+  ArrowLeft: "left",
+  ArrowRight: "right",
+  KeyQ: "q",
+  KeyW: "w",
+  KeyE: "e",
+  KeyR: "r",
+  KeyT: "t",
+  KeyY: "y",
+  KeyU: "u",
+  KeyI: "i",
+  KeyO: "o",
+  KeyP: "p",
+  KeyA: "a",
+  KeyS: "s",
+  KeyD: "d",
+  KeyF: "f",
+  KeyG: "g",
+  KeyH: "h",
+  KeyJ: "j",
+  KeyK: "k",
+  KeyL: "l",
+  KeyZ: "z",
+  KeyX: "x",
+  KeyC: "c",
+  KeyV: "v",
+  KeyB: "b",
+  KeyN: "n",
+  KeyM: "m",
+};
 
 function createLabelMap(
   mask: THREE.Texture,
@@ -123,9 +194,29 @@ function FloorFade() {
 
 useGLTF.preload("/models/floor.glb");
 
-function SceneContent({ lightBg, lightLabel, darkBg, darkLabel, base }: KeyColors) {
+function SceneContent({
+  lightBg,
+  lightLabel,
+  darkBg,
+  darkLabel,
+  base,
+}: KeyColors) {
   const modelRef = useRef<THREE.Group>(null);
   const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
+  const originalY = useRef<Map<string, number>>(new Map());
+  const targetY = useRef<Map<string, number>>(new Map());
+
+  const { nodes } = useGLTF("/models/keyboard.glb");
+  const geoToName = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const [name, node] of Object.entries(nodes)) {
+      if (node instanceof THREE.Mesh) {
+        map.set(node.geometry.uuid, name);
+      }
+    }
+    return map;
+  }, [nodes]);
+
   const keysRoughness = useTexture("/textures/keyboard/keys_roughness.jpg");
   const baseRoughness = useTexture("/textures/keyboard/base_roughness.jpg");
   const keysAOMap = useTexture("/textures/keyboard/ao.webp");
@@ -147,6 +238,20 @@ function SceneContent({ lightBg, lightLabel, darkBg, darkLabel, base }: KeyColor
     () => createLabelMap(keysMask, darkBg, darkLabel),
     [keysMask, darkBg, darkLabel],
   );
+
+  useLayoutEffect(() => {
+    if (!modelRef.current) return;
+    originalY.current.clear();
+    targetY.current.clear();
+    modelRef.current.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+      const name = geoToName.get(child.geometry.uuid);
+      if (name && name !== "Base" && name !== "base_back" && name !== "typeC") {
+        originalY.current.set(name, child.position.y);
+        targetY.current.set(name, child.position.y);
+      }
+    });
+  }, [geoToName]);
 
   useLayoutEffect(() => {
     if (!modelRef.current) return;
@@ -210,10 +315,75 @@ function SceneContent({ lightBg, lightLabel, darkBg, darkLabel, base }: KeyColor
     return () => ctrl.removeEventListener("change", handler);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const keyName = CODE_TO_KEY[e.code];
+      if (keyName && originalY.current.has(keyName)) {
+        e.preventDefault();
+        targetY.current.set(
+          keyName,
+          originalY.current.get(keyName)! - PRESS_DEPTH,
+        );
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const keyName = CODE_TO_KEY[e.code];
+      if (keyName && originalY.current.has(keyName)) {
+        targetY.current.set(keyName, originalY.current.get(keyName)!);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
+
+  const handlePointerDown = useCallback(
+    (e: ThreeEvent<PointerEvent>) => {
+      if (!(e.object instanceof THREE.Mesh)) return;
+      const name = geoToName.get(e.object.geometry.uuid);
+      if (!name) return;
+      const origY = originalY.current.get(name);
+      if (origY === undefined) return;
+      targetY.current.set(name, origY - PRESS_DEPTH);
+    },
+    [geoToName],
+  );
+
+  const handlePointerUp = useCallback(
+    (e: ThreeEvent<PointerEvent>) => {
+      if (!(e.object instanceof THREE.Mesh)) return;
+      const name = geoToName.get(e.object.geometry.uuid);
+      if (!name) return;
+      const origY = originalY.current.get(name);
+      if (origY === undefined) return;
+      targetY.current.set(name, origY);
+    },
+    [geoToName],
+  );
+
+  useFrame(() => {
+    if (!modelRef.current) return;
+    modelRef.current.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+      const name = geoToName.get(child.geometry.uuid);
+      if (!name) return;
+      const target = targetY.current.get(name);
+      if (target === undefined) return;
+      child.position.y += (target - child.position.y) * 0.2;
+    });
+  });
+
   return (
     <>
       <Lighting />
-      <group ref={modelRef}>
+      <group
+        ref={modelRef}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+      >
         <Model />
       </group>
       <Floor />
@@ -238,23 +408,38 @@ export default function Scene() {
   });
 
   return (
-    <div className="h-screen w-full">
-      <Canvas
-        shadows={{ type: THREE.PCFShadowMap }}
-        camera={{ position: [2, 1.5, 2], fov: 40 }}
-      >
-        <Suspense
-          fallback={
-            <mesh>
-              <boxGeometry args={[0.5, 0.5, 0.5]} />
-              <meshBasicMaterial wireframe color="gray" />
-            </mesh>
-          }
+    <div className="h-screen w-full relative bg-zinc-950 overflow-hidden">
+      <div className="absolute inset-0">
+        <Canvas
+          shadows={{ type: THREE.PCFShadowMap }}
+          camera={{ position: [2, 1.5, 2], fov: 40 }}
         >
-          <SceneContent {...colors} />
-        </Suspense>
-      </Canvas>
-      <ConfiguratorPanel colors={colors} onChange={setColors} />
+          <Suspense
+            fallback={
+              <mesh>
+                <boxGeometry args={[0.5, 0.5, 0.5]} />
+                <meshBasicMaterial wireframe color="gray" />
+              </mesh>
+            }
+          >
+            <SceneContent {...colors} />
+          </Suspense>
+        </Canvas>
+      </div>
+
+      <div className="absolute top-0 left-0 right-0 h-14 z-10 flex items-center px-5 backdrop-blur-2xl bg-zinc-950/40">
+        <span className="text-base font-semibold text-zinc-200">
+          ⌨ Keyboard Configurator
+        </span>
+      </div>
+
+      <div className="absolute top-14 right-0 bottom-0 w-72 z-10 p-6 backdrop-blur-2xl bg-zinc-950/40 hidden lg:block pointer-events-none">
+        <div className="pointer-events-auto">
+          <ConfiguratorPanel colors={colors} onChange={setColors} />
+        </div>
+      </div>
+
+      <MobileWidget colors={colors} onChange={setColors} />
     </div>
   );
 }

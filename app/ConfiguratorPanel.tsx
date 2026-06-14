@@ -103,61 +103,52 @@ interface Props {
 
 export default function ConfiguratorPanel({ colors, onChange }: Props) {
   const active = activePreset(colors);
-
   return (
-    <>
-      {/* Desktop */}
-      <header className="fixed inset-x-0 top-0 z-40 h-14 border-b border-zinc-800 bg-zinc-950/60 px-5 backdrop-blur-xl">
-        <div className="flex h-full items-center">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Keyboard Configurator
-          </span>
-        </div>
-      </header>
-      <aside className="fixed bottom-0 right-0 top-14 z-50 hidden w-60 border-l border-zinc-800 bg-zinc-950/60 px-4 pb-4 pt-3 backdrop-blur-xl lg:block">
-        <nav className="flex flex-col gap-1">
-          {PRESETS.map((preset) => {
-            const isActive = preset.name === active;
-            return (
-              <button
-                key={preset.name}
-                onClick={() => onChange(preset.colors)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
-                  isActive
-                    ? "bg-zinc-800 text-zinc-200"
-                    : "text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300"
-                }`}
-              >
-                <Strip colors={preset.colors} />
-                {preset.name}
-              </button>
-            );
-          })}
-        </nav>
-      </aside>
+    <nav className="flex flex-col gap-1">
+      {PRESETS.map((preset) => {
+        const isActive = preset.name === active;
+        return (
+          <button
+            key={preset.name}
+            onClick={() => onChange(preset.colors)}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
+              isActive
+                ? "bg-zinc-800 text-zinc-200"
+                : "text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300"
+            }`}
+          >
+            <Strip colors={preset.colors} />
+            {preset.name}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
 
-      {/* Mobile */}
-      <div className="fixed inset-x-4 bottom-4 z-50 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-3 backdrop-blur-xl lg:hidden">
-        <nav className="flex justify-center gap-1">
-          {PRESETS.map((preset) => {
-            const isActive = preset.name === active;
-            return (
-              <button
-                key={preset.name}
-                onClick={() => onChange(preset.colors)}
-                className={`flex flex-col items-center gap-1 rounded-xl px-3 py-2 text-[10px] font-medium transition-all ${
-                  isActive
-                    ? "bg-zinc-800 text-zinc-200"
-                    : "text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300"
-                }`}
-              >
-                <Strip colors={preset.colors} />
-                {preset.name}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-    </>
+export function MobileWidget({ colors, onChange }: Props) {
+  const active = activePreset(colors);
+  return (
+    <div className="fixed inset-x-4 bottom-4 z-50 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-3 backdrop-blur-xl lg:hidden">
+      <nav className="flex justify-center gap-1">
+        {PRESETS.map((preset) => {
+          const isActive = preset.name === active;
+          return (
+            <button
+              key={preset.name}
+              onClick={() => onChange(preset.colors)}
+              className={`flex flex-col items-center gap-1 rounded-xl px-3 py-2 text-[10px] font-medium transition-all ${
+                isActive
+                  ? "bg-zinc-800 text-zinc-200"
+                  : "text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300"
+              }`}
+            >
+              <Strip colors={preset.colors} />
+              {preset.name}
+            </button>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
