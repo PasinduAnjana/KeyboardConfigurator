@@ -6,7 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Project
 
-3D mechanical keyboard configurator — Next.js 16.2.9, React 19, Three.js (`@react-three/fiber` + `@react-three/drei`). Renders a `.glb` model from `public/models/`.
+3D mechanical keyboard configurator — Next.js 16.2.9, React 19, Three.js (`@react-three/fiber` + `@react-three/drei`). Single-page app: `app/page.tsx` → `app/Scene.tsx` (client boundary) → `@/Keyboard` (glTF model). `app/Scene.tsx` is the only `"use client"` component; all other app files are React Server Components by default.
 
 # Commands
 
@@ -14,14 +14,19 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `npm run build` — production build
 - `npm run start` — start production build
 - `npm run lint` — ESLint (flat config in `eslint.config.mjs`)
+- `npx tsc --noEmit` — TypeScript type-check (no npm script, run manually)
+
+# Verification
+
+No test framework is configured. Run `npm run lint` then `npx tsc --noEmit` before committing.
 
 # Toolchain quirks
 
 - **Tailwind CSS v4** — uses `@import "tailwindcss"`, not `@tailwind` directives. Custom theme tokens go in `@theme inline { ... }`.
-- **ESLint** — flat config (`eslint.config.mjs`) using `eslint-config-next`.
-- **PostCSS** — configured in `postcss.config.mjs` with `@tailwindcss/postcss` plugin.
-- **Path alias** — `@/*` maps to project root (configured in `tsconfig.json`).
-- **TypeScript** — `strict: true`, `jsx: "react-jsx"`, module resolution `"bundler"`.
+- **ESLint** — flat config (`eslint.config.mjs`) using `eslint-config-next` (core-web-vitals + typescript).
+- **PostCSS** — `postcss.config.mjs` with `@tailwindcss/postcss` plugin.
+- **Path alias** — `@/*` maps to project root. E.g., `@/Keyboard`, `@/app/Scene`.
+- **TypeScript** — `strict: true`, `jsx: "react-jsx"`, module resolution `"bundler"`, noEmit.
 
 # 3D model
 
@@ -29,4 +34,4 @@ This version has breaking changes — APIs, conventions, and file structure may 
   ```
   npx gltfjsx@6.5.3 public/models/keyboard.glb
   ```
-- The model lives at `public/models/keyboard.glb` and is served from `/keyboard.glb`.
+- The model lives at `public/models/keyboard.glb` and is loaded from `/models/keyboard.glb` in the generated code.
