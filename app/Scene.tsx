@@ -1,55 +1,41 @@
 "use client";
 
-import { useRef, useMemo, useLayoutEffect, useState, Suspense } from "react";
+import { useRef, useLayoutEffect, Suspense } from "react";
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
-import { Environment, OrbitControls } from "@react-three/drei";
+import { Environment, OrbitControls, useGLTF } from "@react-three/drei";
 import { Model } from "@/Keyboard";
 
 function Lighting() {
   return (
     <>
-      <color args={["#0f0f1a"]} attach="background" />
-      <ambientLight intensity={0.08} />
-      <directionalLight
-        position={[3, 5, 2]}
-        intensity={0.7}
+      <color args={["#000000"]} attach="background" />
+      <Environment preset="sunset" />
+      <spotLight
+        position={[0, 3, 0]}
+        angle={0.8}
+        penumbra={0.4}
+        intensity={80}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
-      <directionalLight
-        position={[-3, 2, -1]}
-        intensity={0.25}
-        color="#8ba8ff"
-      />
-      <directionalLight
-        position={[-1, 3, 5]}
-        intensity={0.15}
-        color="#ffd5a0"
-      />
-      <Environment preset="studio" />
     </>
   );
 }
 
-function Stage({ y }: { y: number }) {
-  return (
-    <mesh position={[0, y, 0]} receiveShadow castShadow>
-      <cylinderGeometry args={[1.5, 1.5, 0.3, 64]} />
-      <meshStandardMaterial color="#1a1a2e" roughness={0.6} metalness={0.3} />
-    </mesh>
-  );
+function Floor() {
+  const { scene } = useGLTF("/models/floor.glb");
+  return <primitive object={scene} receiveShadow />;
 }
+
+useGLTF.preload("/models/floor.glb");
 
 function SceneContent() {
   const modelRef = useRef<THREE.Group>(null);
-  const [bottomY, setBottomY] = useState(-0.24);
 
   useLayoutEffect(() => {
     if (!modelRef.current) return;
-    const box = new THREE.Box3().setFromObject(modelRef.current);
-    setBottomY(box.min.y);
     modelRef.current.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         const mat = child.material as THREE.MeshStandardMaterial;
@@ -58,15 +44,13 @@ function SceneContent() {
     });
   }, []);
 
-  const stageY = useMemo(() => bottomY - 0.15, [bottomY]);
-
   return (
     <>
       <Lighting />
       <group ref={modelRef}>
         <Model />
       </group>
-      <Stage y={stageY} />
+      <Floor />
       <OrbitControls />
     </>
   );
