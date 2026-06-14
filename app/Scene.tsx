@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useLayoutEffect, Suspense } from "react";
+import { useRef, useMemo, useLayoutEffect, Suspense } from "react";
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { Environment, OrbitControls, useGLTF } from "@react-three/drei";
@@ -29,6 +29,39 @@ function Floor() {
   return <primitive object={scene} receiveShadow />;
 }
 
+function FloorFade() {
+  const texture = useMemo(() => {
+    const size = 512;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d")!;
+    const gradient = ctx.createRadialGradient(
+      size / 2, size / 2, 0,
+      size / 2, size / 2, size / 2
+    );
+    gradient.addColorStop(0.2, "rgba(255,255,255,1)");
+    gradient.addColorStop(0.7, "rgba(0,0,0,1)");
+    gradient.addColorStop(1, "rgba(0,0,0,1)");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, size, size);
+    return new THREE.CanvasTexture(canvas);
+  }, []);
+
+  return (
+    <mesh position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[12, 12]} />
+      <meshBasicMaterial
+        map={texture}
+        transparent
+        premultipliedAlpha
+        depthWrite={false}
+        blending={THREE.MultiplyBlending}
+      />
+    </mesh>
+  );
+}
+
 useGLTF.preload("/models/floor.glb");
 
 function SceneContent() {
@@ -51,6 +84,7 @@ function SceneContent() {
         <Model />
       </group>
       <Floor />
+      <FloorFade />
       <OrbitControls />
     </>
   );
