@@ -119,6 +119,7 @@ function SceneContent() {
   const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
   const keysRoughness = useTexture("/textures/keyboard/keys_roughness.jpg");
   const baseRoughness = useTexture("/textures/keyboard/base_roughness.jpg");
+  const keysAOMap = useTexture("/textures/keyboard/ao.webp");
   const keysMask = useTexture("/textures/keyboard/keys.webp");
   const lightLabelMap = useMemo(
     () => createLabelMap(keysMask, "#E7A779", "#663919"),
@@ -129,14 +130,27 @@ function SceneContent() {
     [keysMask],
   );
 
+  const keysAOMapFlipped = useMemo(() => {
+    const t = keysAOMap.clone();
+    t.flipY = false;
+    t.needsUpdate = true;
+    return t;
+  }, [keysAOMap]);
+
   useLayoutEffect(() => {
     if (!modelRef.current) return;
     modelRef.current.traverse((child) => {
       if (child instanceof THREE.Mesh) {
+        const geo = child.geometry;
+        if (!geo.attributes.uv2) {
+          geo.setAttribute("uv2", geo.attributes.uv.clone());
+        }
         const mat = child.material as THREE.MeshStandardMaterial;
         if (mat.name === "keys_light") {
           mat.map = lightLabelMap;
           mat.color.set(0xffffff);
+          mat.aoMap = keysAOMapFlipped;
+          mat.aoMapIntensity = 1;
           mat.roughnessMap = keysRoughness;
           mat.bumpMap = keysRoughness;
           mat.bumpScale = 2;
@@ -145,12 +159,16 @@ function SceneContent() {
         } else if (mat.name === "keys_dark") {
           mat.map = darkLabelMap;
           mat.color.set(0xffffff);
+          mat.aoMap = keysAOMapFlipped;
+          mat.aoMapIntensity = 1;
           mat.roughnessMap = keysRoughness;
           mat.bumpMap = keysRoughness;
           mat.bumpScale = 2;
           mat.roughness = 1;
           mat.needsUpdate = true;
         } else if (mat.name === "base") {
+          mat.aoMap = keysAOMapFlipped;
+          mat.aoMapIntensity = 1;
           mat.roughnessMap = baseRoughness;
           mat.bumpMap = baseRoughness;
           mat.bumpScale = 1;
@@ -159,7 +177,7 @@ function SceneContent() {
         }
       }
     });
-  }, [keysRoughness, baseRoughness, lightLabelMap, darkLabelMap]);
+  }, [keysRoughness, baseRoughness, lightLabelMap, darkLabelMap, keysAOMapFlipped]);
 
   useEffect(() => {
     const ctrl = controlsRef.current;

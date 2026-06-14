@@ -22,11 +22,11 @@ export function Model(props) {
       <mesh geometry={nodes['8'].geometry} material={materials.keys_light} position={[0.108, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes['9'].geometry} material={materials.keys_light} position={[0.323, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes['0'].geometry} material={materials.keys_light} position={[0.539, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
-      <mesh geometry={nodes['-'].geometry} material={materials.keys_light} position={[0.754, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
-      <mesh geometry={nodes['+'].geometry} material={materials.keys_light} position={[0.97, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
-      <mesh geometry={nodes['|'].geometry} material={materials.keys_light} position={[1.185, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
+      <mesh geometry={nodes.minus.geometry} material={materials.keys_light} position={[0.754, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
+      <mesh geometry={nodes.plus.geometry} material={materials.keys_light} position={[0.97, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
+      <mesh geometry={nodes.pipe.geometry} material={materials.keys_light} position={[1.185, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.del.geometry} material={materials.keys_light} position={[1.401, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
-      <mesh geometry={nodes['~'].geometry} material={materials.keys_light} position={[1.616, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
+      <mesh geometry={nodes.tilda.geometry} material={materials.keys_light} position={[1.616, 0.173, -0.428]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.q.geometry} material={materials.keys_light} position={[-1.294, 0.167, -0.211]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.w.geometry} material={materials.keys_light} position={[-1.079, 0.167, -0.211]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.e.geometry} material={materials.keys_light} position={[-0.863, 0.167, -0.211]} rotation={[0.03, 0, 0]} />
@@ -37,8 +37,8 @@ export function Model(props) {
       <mesh geometry={nodes.i.geometry} material={materials.keys_light} position={[0.214, 0.167, -0.211]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.o.geometry} material={materials.keys_light} position={[0.429, 0.167, -0.211]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.p.geometry} material={materials.keys_light} position={[0.645, 0.167, -0.211]} rotation={[0.03, 0, 0]} />
-      {nodes[''] && <mesh geometry={nodes[''].geometry} material={materials.keys_light} position={[0.86, 0.167, -0.211]} rotation={[0.03, 0, 0]} />}
-      <mesh geometry={nodes._1.geometry} material={materials.keys_light} position={[1.075, 0.167, -0.211]} rotation={[0.03, 0, 0]} />
+      <mesh geometry={nodes.left_bracket.geometry} material={materials.keys_light} position={[0.86, 0.167, -0.211]} rotation={[0.03, 0, 0]} />
+      <mesh geometry={nodes.right_bracket.geometry} material={materials.keys_light} position={[1.075, 0.167, -0.211]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.backspace.geometry} material={materials.keys_light} position={[1.348, 0.167, -0.211]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.music.geometry} material={materials.keys_dark} position={[1.616, 0.167, -0.211]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.a.geometry} material={materials.keys_light} position={[-1.237, 0.16, 0.001]} rotation={[0.03, 0, 0]} />
@@ -61,9 +61,9 @@ export function Model(props) {
       <mesh geometry={nodes.b.geometry} material={materials.keys_light} position={[-0.268, 0.154, 0.214]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.n.geometry} material={materials.keys_light} position={[-0.053, 0.154, 0.214]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.m.geometry} material={materials.keys_light} position={[0.163, 0.154, 0.214]} rotation={[0.03, 0, 0]} />
-      <mesh geometry={nodes[','].geometry} material={materials.keys_light} position={[0.378, 0.154, 0.214]} rotation={[0.03, 0, 0]} />
-      <mesh geometry={nodes._2.geometry} material={materials.keys_light} position={[0.594, 0.154, 0.214]} rotation={[0.03, 0, 0]} />
-      <mesh geometry={nodes._3.geometry} material={materials.keys_light} position={[0.809, 0.154, 0.214]} rotation={[0.03, 0, 0]} />
+      <mesh geometry={nodes.comma.geometry} material={materials.keys_light} position={[0.378, 0.154, 0.214]} rotation={[0.03, 0, 0]} />
+      <mesh geometry={nodes.fullstop.geometry} material={materials.keys_light} position={[0.594, 0.154, 0.214]} rotation={[0.03, 0, 0]} />
+      <mesh geometry={nodes.slash.geometry} material={materials.keys_light} position={[0.809, 0.154, 0.214]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.enter.geometry} material={materials.keys_dark} position={[1.265, 0.16, 0.001]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.shift_r.geometry} material={materials.keys_light} position={[1.104, 0.154, 0.213]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.shift_l.geometry} material={materials.keys_light} position={[-1.481, 0.154, 0.214]} rotation={[0.03, 0, 0]} />
@@ -71,7 +71,7 @@ export function Model(props) {
       <mesh geometry={nodes.ctrl_l.geometry} material={materials.keys_light} position={[-1.563, 0.148, 0.425]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.alt_l.geometry} material={materials.keys_light} position={[-1.021, 0.148, 0.425]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.alt_r.geometry} material={materials.keys_light} position={[0.805, 0.148, 0.425]} rotation={[0.03, 0, 0]} />
-      <mesh geometry={nodes.none001.geometry} material={materials.keys_light} position={[1.616, 0.154, 0.213]} rotation={[0.03, 0, 0]} />
+      <mesh geometry={nodes.none1.geometry} material={materials.keys_light} position={[1.616, 0.154, 0.213]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.up.geometry} material={materials.keys_light} position={[1.401, 0.154, 0.213]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.down.geometry} material={materials.keys_light} position={[1.401, 0.148, 0.425]} rotation={[0.03, 0, 0]} />
       <mesh geometry={nodes.left.geometry} material={materials.keys_light} position={[1.183, 0.148, 0.425]} rotation={[0.03, 0, 0]} />
@@ -84,4 +84,4 @@ export function Model(props) {
   )
 }
 
-useGLTF.preload('/keyboard.glb')
+useGLTF.preload('/models/keyboard.glb')
