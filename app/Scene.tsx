@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useState,
   useRef,
   useMemo,
   useEffect,
@@ -17,6 +18,9 @@ import {
   useTexture,
 } from "@react-three/drei";
 import { Model } from "@/Keyboard";
+import ConfiguratorPanel, {
+  type KeyColors,
+} from "@/app/ConfiguratorPanel";
 
 function createLabelMap(
   mask: THREE.Texture,
@@ -119,7 +123,7 @@ function FloorFade() {
 
 useGLTF.preload("/models/floor.glb");
 
-function SceneContent() {
+function SceneContent({ lightBg, lightLabel, darkBg, darkLabel, base }: KeyColors) {
   const modelRef = useRef<THREE.Group>(null);
   const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
   const keysRoughness = useTexture("/textures/keyboard/keys_roughness.jpg");
@@ -136,12 +140,12 @@ function SceneContent() {
   useEffect(() => () => keysAOMapUnflipped.dispose(), [keysAOMapUnflipped]);
   const keysMask = useTexture("/textures/keyboard/keys.webp");
   const lightLabelMap = useMemo(
-    () => createLabelMap(keysMask, "#E7A779", "#663919"),
-    [keysMask],
+    () => createLabelMap(keysMask, lightBg, lightLabel),
+    [keysMask, lightBg, lightLabel],
   );
   const darkLabelMap = useMemo(
-    () => createLabelMap(keysMask, "#663919", "#E7A779"),
-    [keysMask],
+    () => createLabelMap(keysMask, darkBg, darkLabel),
+    [keysMask, darkBg, darkLabel],
   );
 
   useLayoutEffect(() => {
@@ -172,6 +176,7 @@ function SceneContent() {
           mat.roughness = 1;
           mat.needsUpdate = true;
         } else if (mat.name === "base") {
+          if (base) mat.color.set(base);
           mat.aoMap = keysAOMapUnflipped;
           mat.aoMapIntensity = 1;
           mat.roughnessMap = baseRoughness;
@@ -188,6 +193,11 @@ function SceneContent() {
     lightLabelMap,
     darkLabelMap,
     keysAOMapUnflipped,
+    lightBg,
+    lightLabel,
+    darkBg,
+    darkLabel,
+    base,
   ]);
 
   useEffect(() => {
@@ -220,6 +230,13 @@ function SceneContent() {
 }
 
 export default function Scene() {
+  const [colors, setColors] = useState<KeyColors>({
+    lightBg: "#E7A779",
+    lightLabel: "#663919",
+    darkBg: "#663919",
+    darkLabel: "#E7A779",
+  });
+
   return (
     <div className="h-screen w-full">
       <Canvas
@@ -234,9 +251,10 @@ export default function Scene() {
             </mesh>
           }
         >
-          <SceneContent />
+          <SceneContent {...colors} />
         </Suspense>
       </Canvas>
+      <ConfiguratorPanel colors={colors} onChange={setColors} />
     </div>
   );
 }
