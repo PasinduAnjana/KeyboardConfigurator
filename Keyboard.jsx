@@ -84,4 +84,4 @@ export function Model(props) {
   )
 }
 
-useGLTF.preload('/models/keyboard.glb')
+useGLTF.preload('/keyboard.glb')

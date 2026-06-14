@@ -1,9 +1,21 @@
 "use client";
 
-import { useRef, useMemo, useEffect, useLayoutEffect, Suspense, type ElementRef } from "react";
+import {
+  useRef,
+  useMemo,
+  useEffect,
+  useLayoutEffect,
+  Suspense,
+  type ElementRef,
+} from "react";
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
-import { Environment, OrbitControls, useGLTF } from "@react-three/drei";
+import {
+  Environment,
+  OrbitControls,
+  useGLTF,
+  useTexture,
+} from "@react-three/drei";
 import { Model } from "@/Keyboard";
 
 function Lighting() {
@@ -73,16 +85,38 @@ useGLTF.preload("/models/floor.glb");
 function SceneContent() {
   const modelRef = useRef<THREE.Group>(null);
   const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
+  const keysRoughness = useTexture("/textures/keyboard/keys_roughness.jpg");
+  const baseRoughness = useTexture("/textures/keyboard/base_roughness.jpg");
 
   useLayoutEffect(() => {
     if (!modelRef.current) return;
     modelRef.current.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         const mat = child.material as THREE.MeshStandardMaterial;
-        if (mat.name.startsWith("keys")) mat.roughness = 1;
+        if (mat.name === "keys_light") {
+          mat.roughnessMap = keysRoughness;
+          mat.bumpMap = keysRoughness;
+          mat.bumpScale = 1;
+          mat.roughness = 1;
+          mat.color.set("#E7A779");
+          mat.needsUpdate = true;
+        } else if (mat.name === "keys_dark") {
+          mat.roughnessMap = keysRoughness;
+          mat.bumpMap = keysRoughness;
+          mat.bumpScale = 1;
+          mat.roughness = 1;
+          mat.color.set("#663919");
+          mat.needsUpdate = true;
+        } else if (mat.name === "base") {
+          mat.roughnessMap = baseRoughness;
+          mat.bumpMap = baseRoughness;
+          mat.bumpScale = 1;
+          mat.roughness = 1;
+          mat.needsUpdate = true;
+        }
       }
     });
-  }, []);
+  }, [keysRoughness, baseRoughness]);
 
   useEffect(() => {
     const ctrl = controlsRef.current;
