@@ -18,6 +18,38 @@ import {
 } from "@react-three/drei";
 import { Model } from "@/Keyboard";
 
+function createLabelMap(
+  mask: THREE.Texture,
+  bgColor: string,
+  labelColor: string,
+): THREE.CanvasTexture {
+  const img = mask.image as HTMLImageElement;
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0);
+
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  const bg = new THREE.Color(bgColor);
+  const label = new THREE.Color(labelColor);
+
+  for (let i = 0; i < data.length; i += 4) {
+    const t = data[i] / 255;
+    data[i] = Math.round((bg.r * (1 - t) + label.r * t) * 255);
+    data[i + 1] = Math.round((bg.g * (1 - t) + label.g * t) * 255);
+    data[i + 2] = Math.round((bg.b * (1 - t) + label.b * t) * 255);
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.flipY = false;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 function Lighting() {
   return (
     <>
@@ -87,6 +119,15 @@ function SceneContent() {
   const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
   const keysRoughness = useTexture("/textures/keyboard/keys_roughness.jpg");
   const baseRoughness = useTexture("/textures/keyboard/base_roughness.jpg");
+  const keysMask = useTexture("/textures/keyboard/keys.webp");
+  const lightLabelMap = useMemo(
+    () => createLabelMap(keysMask, "#E7A779", "#663919"),
+    [keysMask],
+  );
+  const darkLabelMap = useMemo(
+    () => createLabelMap(keysMask, "#663919", "#E7A779"),
+    [keysMask],
+  );
 
   useLayoutEffect(() => {
     if (!modelRef.current) return;
@@ -94,29 +135,31 @@ function SceneContent() {
       if (child instanceof THREE.Mesh) {
         const mat = child.material as THREE.MeshStandardMaterial;
         if (mat.name === "keys_light") {
+          mat.map = lightLabelMap;
+          mat.color.set(0xffffff);
           mat.roughnessMap = keysRoughness;
           mat.bumpMap = keysRoughness;
-          mat.bumpScale = 1;
-          mat.roughness = 1;
-          mat.color.set("#E7A779");
+          mat.bumpScale = 2;
+          mat.roughness = 0.6;
           mat.needsUpdate = true;
         } else if (mat.name === "keys_dark") {
+          mat.map = darkLabelMap;
+          mat.color.set(0xffffff);
           mat.roughnessMap = keysRoughness;
           mat.bumpMap = keysRoughness;
-          mat.bumpScale = 1;
+          mat.bumpScale = 2;
           mat.roughness = 1;
-          mat.color.set("#663919");
           mat.needsUpdate = true;
         } else if (mat.name === "base") {
           mat.roughnessMap = baseRoughness;
           mat.bumpMap = baseRoughness;
           mat.bumpScale = 1;
-          mat.roughness = 1;
+          mat.roughness = 1.8;
           mat.needsUpdate = true;
         }
       }
     });
-  }, [keysRoughness, baseRoughness]);
+  }, [keysRoughness, baseRoughness, lightLabelMap, darkLabelMap]);
 
   useEffect(() => {
     const ctrl = controlsRef.current;
