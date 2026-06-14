@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useLayoutEffect, Suspense } from "react";
+import { useRef, useMemo, useEffect, useLayoutEffect, Suspense, type ElementRef } from "react";
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { Environment, OrbitControls, useGLTF } from "@react-three/drei";
@@ -37,8 +37,12 @@ function FloorFade() {
     canvas.height = size;
     const ctx = canvas.getContext("2d")!;
     const gradient = ctx.createRadialGradient(
-      size / 2, size / 2, 0,
-      size / 2, size / 2, size / 2
+      size / 2,
+      size / 2,
+      0,
+      size / 2,
+      size / 2,
+      size / 2,
     );
     gradient.addColorStop(0.2, "rgba(255,255,255,1)");
     gradient.addColorStop(0.7, "rgba(0,0,0,1)");
@@ -48,8 +52,10 @@ function FloorFade() {
     return new THREE.CanvasTexture(canvas);
   }, []);
 
+  useEffect(() => () => texture.dispose(), [texture]);
+
   return (
-    <mesh position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+    <mesh position={[0, 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[12, 12]} />
       <meshBasicMaterial
         map={texture}
@@ -66,6 +72,7 @@ useGLTF.preload("/models/floor.glb");
 
 function SceneContent() {
   const modelRef = useRef<THREE.Group>(null);
+  const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
 
   useLayoutEffect(() => {
     if (!modelRef.current) return;
@@ -77,6 +84,16 @@ function SceneContent() {
     });
   }, []);
 
+  useEffect(() => {
+    const ctrl = controlsRef.current;
+    if (!ctrl) return;
+    const handler = () => {
+      if (ctrl.target.y < 0) ctrl.target.y = 0;
+    };
+    ctrl.addEventListener("change", handler);
+    return () => ctrl.removeEventListener("change", handler);
+  }, []);
+
   return (
     <>
       <Lighting />
@@ -85,7 +102,13 @@ function SceneContent() {
       </group>
       <Floor />
       <FloorFade />
-      <OrbitControls />
+      <OrbitControls
+        ref={controlsRef}
+        makeDefault
+        enableDamping
+        dampingFactor={0.1}
+        maxPolarAngle={Math.PI / 2 - 0.1}
+      />
     </>
   );
 }
@@ -93,8 +116,18 @@ function SceneContent() {
 export default function Scene() {
   return (
     <div className="h-screen w-full">
-      <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [2, 1.5, 2], fov: 40 }}>
-        <Suspense fallback={null}>
+      <Canvas
+        shadows={{ type: THREE.PCFShadowMap }}
+        camera={{ position: [2, 1.5, 2], fov: 40 }}
+      >
+        <Suspense
+          fallback={
+            <mesh>
+              <boxGeometry args={[0.5, 0.5, 0.5]} />
+              <meshBasicMaterial wireframe color="gray" />
+            </mesh>
+          }
+        >
           <SceneContent />
         </Suspense>
       </Canvas>

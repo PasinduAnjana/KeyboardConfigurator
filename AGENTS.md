@@ -1,10 +1,6 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+# Next.js v16
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-
-> Agent hint found in the bundled docs: if fixing slow client-side navigations, you must also export `unstable_instant` from the route.
-<!-- END:nextjs-agent-rules -->
+Read `node_modules/next/dist/docs/` before writing code — breaking changes from prior versions. If fixing slow client-side navigations, export `unstable_instant` from the route (bundled docs hint).
 
 # Project
 
@@ -38,5 +34,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - The glTF includes an empty-string node name (`nodes['']`) — fragile, may need manual handling after regeneration.
 - **Regeneration hazard** — after regenerating, verify that `useGLTF` and `useGLTF.preload` use the same path (both should be `/models/keyboard.glb`). The generator may produce mismatched paths.
 - Model file: `public/models/keyboard.glb`.
+- `Scene.tsx` also loads `public/models/floor.glb` (ground plane with radial fade texture).
 
 `CLAUDE.md` references this file via `@AGENTS.md` — keep them in sync.
