@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useEffect, useState } from "react";
+import { useRef, useMemo, useLayoutEffect, useState, Suspense } from "react";
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { Environment, OrbitControls } from "@react-three/drei";
@@ -46,7 +46,7 @@ function SceneContent() {
   const modelRef = useRef<THREE.Group>(null);
   const [bottomY, setBottomY] = useState(-0.24);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!modelRef.current) return;
     const box = new THREE.Box3().setFromObject(modelRef.current);
     setBottomY(box.min.y);
@@ -75,8 +75,10 @@ function SceneContent() {
 export default function Scene() {
   return (
     <div className="h-screen w-full">
-      <Canvas shadows camera={{ position: [2, 1.5, 2], fov: 40 }}>
-        <SceneContent />
+      <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [2, 1.5, 2], fov: 40 }}>
+        <Suspense fallback={null}>
+          <SceneContent />
+        </Suspense>
       </Canvas>
     </div>
   );
