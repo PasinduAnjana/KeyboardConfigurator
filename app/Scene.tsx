@@ -70,13 +70,12 @@ function Lighting() {
 
 function Floor() {
   const { scene } = useGLTF("/models/floor.glb");
-  const floor = useMemo(() => {
+  useLayoutEffect(() => {
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) child.receiveShadow = true;
     });
-    return scene;
   }, [scene]);
-  return <primitive object={floor} />;
+  return <primitive object={scene} />;
 }
 
 function FloorFade() {
@@ -133,6 +132,8 @@ function SceneContent() {
     t.needsUpdate = true;
     return t;
   }, [keysAOMap]);
+
+  useEffect(() => () => keysAOMapUnflipped.dispose(), [keysAOMapUnflipped]);
   const keysMask = useTexture("/textures/keyboard/keys.webp");
   const lightLabelMap = useMemo(
     () => createLabelMap(keysMask, "#E7A779", "#663919"),
@@ -148,7 +149,8 @@ function SceneContent() {
     modelRef.current.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
-        const mat = child.material as THREE.MeshStandardMaterial;
+        const mat = child.material;
+        if (!(mat instanceof THREE.MeshStandardMaterial)) return;
         if (mat.name === "keys_light") {
           mat.map = lightLabelMap;
           mat.color.set(0xffffff);
