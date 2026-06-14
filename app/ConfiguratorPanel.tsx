@@ -79,16 +79,16 @@ function Strip({ colors: c }: { colors: KeyColors }) {
   return (
     <span className="flex -space-x-0.5 overflow-hidden rounded-sm">
       <span
-        className="inline-block size-3"
+        className="inline-block size-4"
         style={{ backgroundColor: c.lightBg }}
       />
       <span
-        className="inline-block size-3"
+        className="inline-block size-4"
         style={{ backgroundColor: c.darkBg }}
       />
       {c.base && (
         <span
-          className="inline-block size-3"
+          className="inline-block size-4"
           style={{ backgroundColor: c.base }}
         />
       )}
@@ -107,14 +107,14 @@ export default function ConfiguratorPanel({ colors, onChange }: Props) {
   return (
     <>
       {/* Desktop */}
-      <header className="fixed inset-x-0 top-0 z-40 h-12 border-b border-zinc-800 bg-zinc-950/60 px-5 backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-40 h-14 border-b border-zinc-800 bg-zinc-950/60 px-5 backdrop-blur-xl">
         <div className="flex h-full items-center">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
             Keyboard Configurator
           </span>
         </div>
       </header>
-      <aside className="fixed bottom-0 right-0 top-12 z-50 w-44 border-l border-zinc-800 bg-zinc-950/60 px-4 pb-4 pt-3 backdrop-blur-xl">
+      <aside className="fixed bottom-0 right-0 top-14 z-50 w-60 border-l border-zinc-800 bg-zinc-950/60 px-4 pb-4 pt-3 backdrop-blur-xl">
         <nav className="flex flex-col gap-1">
           {PRESETS.map((preset) => {
             const isActive = preset.name === active;
