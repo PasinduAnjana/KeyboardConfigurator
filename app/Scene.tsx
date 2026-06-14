@@ -120,6 +120,13 @@ function SceneContent() {
   const keysRoughness = useTexture("/textures/keyboard/keys_roughness.jpg");
   const baseRoughness = useTexture("/textures/keyboard/base_roughness.jpg");
   const keysAOMap = useTexture("/textures/keyboard/ao.webp");
+  const keysAOMapUnflipped = useMemo(() => {
+    const t = keysAOMap.clone();
+    t.flipY = false;
+    t.channel = 1;
+    t.needsUpdate = true;
+    return t;
+  }, [keysAOMap]);
   const keysMask = useTexture("/textures/keyboard/keys.webp");
   const lightLabelMap = useMemo(
     () => createLabelMap(keysMask, "#E7A779", "#663919"),
@@ -130,36 +137,25 @@ function SceneContent() {
     [keysMask],
   );
 
-  const keysAOMapFlipped = useMemo(() => {
-    const t = keysAOMap.clone();
-    t.flipY = false;
-    t.needsUpdate = true;
-    return t;
-  }, [keysAOMap]);
-
   useLayoutEffect(() => {
     if (!modelRef.current) return;
     modelRef.current.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        const geo = child.geometry;
-        if (!geo.attributes.uv2) {
-          geo.setAttribute("uv2", geo.attributes.uv.clone());
-        }
         const mat = child.material as THREE.MeshStandardMaterial;
         if (mat.name === "keys_light") {
           mat.map = lightLabelMap;
           mat.color.set(0xffffff);
-          mat.aoMap = keysAOMapFlipped;
+          mat.aoMap = keysAOMapUnflipped;
           mat.aoMapIntensity = 1;
           mat.roughnessMap = keysRoughness;
           mat.bumpMap = keysRoughness;
           mat.bumpScale = 2;
-          mat.roughness = 0.6;
+          mat.roughness = 1;
           mat.needsUpdate = true;
         } else if (mat.name === "keys_dark") {
           mat.map = darkLabelMap;
           mat.color.set(0xffffff);
-          mat.aoMap = keysAOMapFlipped;
+          mat.aoMap = keysAOMapUnflipped;
           mat.aoMapIntensity = 1;
           mat.roughnessMap = keysRoughness;
           mat.bumpMap = keysRoughness;
@@ -167,7 +163,7 @@ function SceneContent() {
           mat.roughness = 1;
           mat.needsUpdate = true;
         } else if (mat.name === "base") {
-          mat.aoMap = keysAOMapFlipped;
+          mat.aoMap = keysAOMapUnflipped;
           mat.aoMapIntensity = 1;
           mat.roughnessMap = baseRoughness;
           mat.bumpMap = baseRoughness;
@@ -177,7 +173,13 @@ function SceneContent() {
         }
       }
     });
-  }, [keysRoughness, baseRoughness, lightLabelMap, darkLabelMap, keysAOMapFlipped]);
+  }, [
+    keysRoughness,
+    baseRoughness,
+    lightLabelMap,
+    darkLabelMap,
+    keysAOMapUnflipped,
+  ]);
 
   useEffect(() => {
     const ctrl = controlsRef.current;
