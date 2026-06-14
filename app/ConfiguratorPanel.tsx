@@ -114,7 +114,7 @@ export default function ConfiguratorPanel({ colors, onChange }: Props) {
           </span>
         </div>
       </header>
-      <aside className="fixed bottom-0 right-0 top-14 z-50 w-60 border-l border-zinc-800 bg-zinc-950/60 px-4 pb-4 pt-3 backdrop-blur-xl">
+      <aside className="fixed bottom-0 right-0 top-14 z-50 hidden w-60 border-l border-zinc-800 bg-zinc-950/60 px-4 pb-4 pt-3 backdrop-blur-xl lg:block">
         <nav className="flex flex-col gap-1">
           {PRESETS.map((preset) => {
             const isActive = preset.name === active;
