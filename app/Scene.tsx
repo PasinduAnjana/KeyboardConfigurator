@@ -70,7 +70,13 @@ function Lighting() {
 
 function Floor() {
   const { scene } = useGLTF("/models/floor.glb");
-  return <primitive object={scene} receiveShadow />;
+  const floor = useMemo(() => {
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) child.receiveShadow = true;
+    });
+    return scene;
+  }, [scene]);
+  return <primitive object={floor} />;
 }
 
 function FloorFade() {
@@ -141,6 +147,7 @@ function SceneContent() {
     if (!modelRef.current) return;
     modelRef.current.traverse((child) => {
       if (child instanceof THREE.Mesh) {
+        child.castShadow = true;
         const mat = child.material as THREE.MeshStandardMaterial;
         if (mat.name === "keys_light") {
           mat.map = lightLabelMap;
