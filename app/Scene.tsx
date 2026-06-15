@@ -137,7 +137,9 @@ function useKeystrokeSound() {
     fetch("/audio/single_key.wav")
       .then((res) => res.arrayBuffer())
       .then((buf) => ctx.decodeAudioData(buf))
-      .then((audioBuf) => { bufferRef.current = audioBuf; })
+      .then((audioBuf) => {
+        bufferRef.current = audioBuf;
+      })
       .catch(() => {});
     return () => void ctx.close();
   }, []);
@@ -234,7 +236,9 @@ function SceneContent({
   base,
   onReady,
 }: KeyColors & { onReady?: () => void }) {
-  useEffect(() => { onReady?.(); }, [onReady]);
+  useEffect(() => {
+    onReady?.();
+  }, [onReady]);
   const modelRef = useRef<THREE.Group>(null);
   const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
   const originalY = useRef<Map<string, number>>(new Map());
@@ -253,7 +257,7 @@ function SceneContent({
   }, [nodes]);
 
   const keysRoughness = useTexture("/textures/keyboard/keys_roughness.jpg");
-  const baseRoughness = useTexture("/textures/keyboard/base_roughness.jpg");
+  const baseRoughness = useTexture("/textures/keyboard/base_roughness.webp");
   const keysAOMap = useTexture("/textures/keyboard/ao.webp");
   const keysAOMapUnflipped = useMemo(() => {
     const t = keysAOMap.clone();
@@ -302,7 +306,7 @@ function SceneContent({
           mat.aoMapIntensity = 1;
           mat.roughnessMap = keysRoughness;
           mat.bumpMap = keysRoughness;
-          mat.bumpScale = 2;
+          mat.bumpScale = 1;
           mat.roughness = 1;
           mat.needsUpdate = true;
         } else if (mat.name === "keys_dark") {
@@ -321,8 +325,8 @@ function SceneContent({
           mat.aoMapIntensity = 1;
           mat.roughnessMap = baseRoughness;
           mat.bumpMap = baseRoughness;
-          mat.bumpScale = 1;
-          mat.roughness = 1.8;
+          mat.bumpScale = 0.3;
+          mat.roughness = 1;
           mat.needsUpdate = true;
         }
       }
