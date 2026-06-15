@@ -105,85 +105,112 @@ interface Props {
   onDarkKeysEnabledChange: (enabled: boolean) => void;
   darkKeyMode: DarkKeyMode;
   onDarkKeyModeChange: (mode: DarkKeyMode) => void;
+  onDownload: () => void;
 }
 
 export default function ConfiguratorPanel({
   colors, onChange,
   darkKeysEnabled, onDarkKeysEnabledChange,
   darkKeyMode, onDarkKeyModeChange,
+  onDownload,
 }: Props) {
   const active = activePreset(colors);
   return (
-    <nav className="flex flex-col gap-1">
-      {PRESETS.map((preset) => {
-        const isActive = preset.name === active;
-        return (
-          <button
-            key={preset.name}
-            onClick={() => onChange(preset.colors)}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
-              isActive
-                ? "bg-zinc-800 text-zinc-200"
-                : "text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300"
-            }`}
-          >
-            <Strip colors={preset.colors} />
-            {preset.name}
-          </button>
-        );
-      })}
-
-      <div className="flex items-center justify-between pt-3 border-t border-zinc-800 mt-2">
-        <span className="text-xs font-medium text-zinc-400">DARK KEYS</span>
-        <button
-          onClick={() => onDarkKeysEnabledChange(!darkKeysEnabled)}
-          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-            darkKeysEnabled ? "bg-zinc-300" : "bg-zinc-800"
-          }`}
-          aria-label="Toggle dark keys"
-        >
-          <span
-            className={`inline-block size-4 rounded-full bg-white transition-transform ${
-              darkKeysEnabled ? "translate-x-[18px]" : "translate-x-0.5"
-            }`}
-          />
-        </button>
-      </div>
-
-      {darkKeysEnabled && (
-        <div>
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => onDarkKeyModeChange(darkKeyMode === "add" ? "idle" : "add")}
-              className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition-all ${
-                darkKeyMode === "add"
-                  ? "bg-white text-black shadow-sm"
-                  : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white"
-              }`}
-            >
-              + Add
-            </button>
-            <button
-              onClick={() => onDarkKeyModeChange(darkKeyMode === "remove" ? "idle" : "remove")}
-              className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition-all ${
-                darkKeyMode === "remove"
-                  ? "bg-white text-black shadow-sm"
-                  : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white"
-              }`}
-            >
-              - Remove
-            </button>
-          </div>
-          {darkKeyMode !== "idle" && (
-            <p className="mt-1.5 text-[10px] text-zinc-500 text-center">
-              {darkKeyMode === "add"
-                ? "Click a key to add it"
-                : "Click a key to remove it"}
-            </p>
-          )}
+    <div className="flex flex-col gap-4">
+      <section>
+        <h2 className="text-xs font-medium text-zinc-500 mb-2 tracking-wider uppercase">Colors</h2>
+        <div className="flex flex-col gap-1">
+          {PRESETS.map((preset) => {
+            const isActive = preset.name === active;
+            return (
+              <button
+                key={preset.name}
+                onClick={() => onChange(preset.colors)}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
+                  isActive
+                    ? "bg-zinc-800 text-zinc-200"
+                    : "text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300"
+                }`}
+              >
+                <Strip colors={preset.colors} />
+                {preset.name}
+              </button>
+            );
+          })}
         </div>
-      )}
-    </nav>
+      </section>
+
+      <hr className="border-zinc-800" />
+
+      <section>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xs font-medium text-zinc-500 tracking-wider uppercase">Dark Keys</h2>
+          <button
+            onClick={() => onDarkKeysEnabledChange(!darkKeysEnabled)}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+              darkKeysEnabled ? "bg-zinc-300" : "bg-zinc-800"
+            }`}
+            aria-label="Toggle dark keys"
+          >
+            <span
+              className={`inline-block size-4 rounded-full bg-white transition-transform ${
+                darkKeysEnabled ? "translate-x-[18px]" : "translate-x-0.5"
+              }`}
+            />
+          </button>
+        </div>
+
+        {darkKeysEnabled && (
+          <div>
+            <div className="flex gap-1.5">
+              <button
+                onClick={() => onDarkKeyModeChange(darkKeyMode === "add" ? "idle" : "add")}
+                className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition-all ${
+                  darkKeyMode === "add"
+                    ? "bg-white text-black shadow-sm"
+                    : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                }`}
+              >
+                + Add
+              </button>
+              <button
+                onClick={() => onDarkKeyModeChange(darkKeyMode === "remove" ? "idle" : "remove")}
+                className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition-all ${
+                  darkKeyMode === "remove"
+                    ? "bg-white text-black shadow-sm"
+                    : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                }`}
+              >
+                - Remove
+              </button>
+            </div>
+            {darkKeyMode !== "idle" && (
+              <p className="mt-1.5 text-[10px] text-zinc-500 text-center">
+                {darkKeyMode === "add"
+                  ? "Click a key to add it"
+                  : "Click a key to remove it"}
+              </p>
+            )}
+          </div>
+        )}
+      </section>
+
+      <hr className="border-zinc-800" />
+
+      <section>
+        <h2 className="text-xs font-medium text-zinc-500 mb-2 tracking-wider uppercase">Download</h2>
+        <button
+          onClick={onDownload}
+          className="flex items-center justify-center gap-1.5 rounded-lg w-full px-3 py-2.5 text-xs font-semibold bg-white text-black hover:bg-zinc-200 transition-all"
+          aria-label="Download screenshot"
+        >
+          <svg viewBox="0 0 16 16" fill="currentColor" className="size-3.5">
+            <path d="M8 1a1 1 0 0 1 1 1v5.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L7 7.586V2a1 1 0 0 1 1-1ZM1 12a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-1a1 1 0 0 1 1-1Z" />
+          </svg>
+          Download Image
+        </button>
+      </section>
+    </div>
   );
 }
 
@@ -191,6 +218,7 @@ export function MobileWidget({
   colors, onChange,
   darkKeysEnabled, onDarkKeysEnabledChange,
   darkKeyMode, onDarkKeyModeChange,
+  onDownload,
 }: Props) {
   const active = activePreset(colors);
   return (
@@ -216,7 +244,7 @@ export function MobileWidget({
       </nav>
 
       <div className="flex items-center justify-between pt-2 mt-2 border-t border-zinc-800">
-        <span className="text-[10px] font-medium text-zinc-400">DARK KEYS</span>
+        <span className="text-[10px] font-medium text-zinc-400">Dark Keys</span>
         <button
           onClick={() => onDarkKeysEnabledChange(!darkKeysEnabled)}
           className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${
@@ -256,6 +284,17 @@ export function MobileWidget({
           </button>
         </div>
       )}
+
+      <button
+        onClick={onDownload}
+        className="flex items-center justify-center gap-1 rounded-lg w-full px-2 py-1.5 text-[10px] font-semibold bg-white text-black hover:bg-zinc-200 transition-all mt-2"
+        aria-label="Download screenshot"
+      >
+        <svg viewBox="0 0 16 16" fill="currentColor" className="size-3">
+          <path d="M8 1a1 1 0 0 1 1 1v5.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L7 7.586V2a1 1 0 0 1 1-1ZM1 12a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-1a1 1 0 0 1 1-1Z" />
+        </svg>
+        Download
+      </button>
     </div>
   );
 }

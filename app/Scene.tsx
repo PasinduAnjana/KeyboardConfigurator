@@ -11,7 +11,7 @@ import {
   type ElementRef,
 } from "react";
 import * as THREE from "three";
-import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
+import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import {
   AdaptiveDpr,
   AdaptiveEvents,
@@ -240,6 +240,7 @@ function SceneContent({
   onInitDarkKeys,
   onToggleKey,
   darkKeyMode,
+  captureRef,
   onReady,
 }: KeyColors & {
   darkKeysEnabled: boolean;
@@ -247,6 +248,7 @@ function SceneContent({
   onInitDarkKeys: (defaults: string[]) => void;
   onToggleKey: (keyName: string) => void;
   darkKeyMode: DarkKeyMode;
+  captureRef: React.MutableRefObject<(() => void) | null>;
   onReady?: () => void;
 }) {
   useEffect(() => {
@@ -257,6 +259,20 @@ function SceneContent({
   const originalY = useRef<Map<string, number>>(new Map());
   const targetY = useRef<Map<string, number>>(new Map());
   const playKeystroke = useKeystrokeSound();
+  const { gl, scene, camera } = useThree();
+
+  useEffect(() => {
+    captureRef.current = () => {
+      gl.render(scene, camera);
+      const link = document.createElement("a");
+      link.download = "keyboard-config.png";
+      link.href = gl.domElement.toDataURL("image/png");
+      link.click();
+    };
+    return () => {
+      captureRef.current = null;
+    };
+  }, [gl, scene, camera, captureRef]);
 
   const { nodes, materials } = useGLTF("/models/keyboard.glb");
   const originallyDarkRef = useRef<Set<string>>(new Set());
@@ -535,6 +551,12 @@ export default function Scene() {
     });
   }, []);
 
+  const captureRef = useRef<(() => void) | null>(null);
+
+  const handleDownload = useCallback(() => {
+    captureRef.current?.();
+  }, []);
+
   return (
     <div
       className={`h-screen w-full relative bg-zinc-950 overflow-hidden ${
@@ -567,6 +589,7 @@ export default function Scene() {
               onInitDarkKeys={handleInitDarkKeys}
               onToggleKey={handleToggleKey}
               darkKeyMode={darkKeyMode}
+              captureRef={captureRef}
               onReady={() => setReady(true)}
             />
           </Suspense>
@@ -588,6 +611,7 @@ export default function Scene() {
             onDarkKeysEnabledChange={setDarkKeysEnabled}
             darkKeyMode={darkKeyMode}
             onDarkKeyModeChange={setDarkKeyMode}
+            onDownload={handleDownload}
           />
         </div>
       </div>
@@ -599,6 +623,7 @@ export default function Scene() {
         onDarkKeysEnabledChange={setDarkKeysEnabled}
         darkKeyMode={darkKeyMode}
         onDarkKeyModeChange={setDarkKeyMode}
+        onDownload={handleDownload}
       />
 
       <div className="absolute top-16 lg:bottom-6 lg:top-auto left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5">
