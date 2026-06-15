@@ -125,6 +125,36 @@ function createLabelMap(
   return texture;
 }
 
+function useKeystrokeSound() {
+  const ctxRef = useRef<AudioContext | null>(null);
+  const bufferRef = useRef<AudioBuffer | null>(null);
+
+  useEffect(() => {
+    const ctx = new AudioContext();
+    ctxRef.current = ctx;
+    fetch("/audio/single_key.wav")
+      .then((res) => res.arrayBuffer())
+      .then((buf) => ctx.decodeAudioData(buf))
+      .then((audioBuf) => { bufferRef.current = audioBuf; })
+      .catch(() => {});
+    return () => void ctx.close();
+  }, []);
+
+  const play = useCallback(() => {
+    const ctx = ctxRef.current;
+    const buf = bufferRef.current;
+    if (!ctx || !buf) return;
+    if (ctx.state === "suspended") ctx.resume();
+    const source = ctx.createBufferSource();
+    source.buffer = buf;
+    source.playbackRate.value = 0.85 + Math.random() * 0.3;
+    source.connect(ctx.destination);
+    source.start();
+  }, []);
+
+  return play;
+}
+
 function Lighting() {
   return (
     <>
@@ -205,6 +235,7 @@ function SceneContent({
   const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
   const originalY = useRef<Map<string, number>>(new Map());
   const targetY = useRef<Map<string, number>>(new Map());
+  const playKeystroke = useKeystrokeSound();
 
   const { nodes } = useGLTF("/models/keyboard.glb");
   const geoToName = useMemo(() => {
@@ -324,6 +355,7 @@ function SceneContent({
           keyName,
           originalY.current.get(keyName)! - PRESS_DEPTH,
         );
+        playKeystroke();
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -338,7 +370,7 @@ function SceneContent({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, []);
+  }, [playKeystroke]);
 
   const handlePointerDown = useCallback(
     (e: ThreeEvent<PointerEvent>) => {
@@ -348,8 +380,9 @@ function SceneContent({
       const origY = originalY.current.get(name);
       if (origY === undefined) return;
       targetY.current.set(name, origY - PRESS_DEPTH);
+      playKeystroke();
     },
-    [geoToName],
+    [geoToName, playKeystroke],
   );
 
   const handlePointerUp = useCallback(

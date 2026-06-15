@@ -4,7 +4,7 @@ Read `node_modules/next/dist/docs/` before writing code — breaking changes fro
 
 # Project
 
-3D mechanical keyboard configurator — Next.js 16.2.9, React 19.2.4, Three.js 0.184 with `@react-three/fiber` 9.6.1 + `@react-three/drei` 10.7.7. Single-page app: `app/page.tsx` → `app/Scene.tsx` (`"use client"` boundary) → `@/Keyboard` (glTF model). `app/Scene.tsx` is the only client component; all other `app/` files are React Server Components by default.
+3D mechanical keyboard configurator — Next.js 16.2.9, React 19.2.4, Three.js 0.184 with `@react-three/fiber` 9.6.1 + `@react-three/drei` 10.7.7. Single-page app: `app/page.tsx` → `app/Scene.tsx` (`"use client"` boundary) → `@/Keyboard` (glTF model). `app/Scene.tsx` and `app/ConfiguratorPanel.tsx` are client components (Scene is the consumer); all other `app/` files are React Server Components by default.
 
 # Commands & verification
 
@@ -22,7 +22,7 @@ Read `node_modules/next/dist/docs/` before writing code — breaking changes fro
 - **PostCSS** — `postcss.config.mjs` with `@tailwindcss/postcss` plugin.
 - **Path alias** — `@/*` maps to project root. E.g. `@/Keyboard`, `@/app/Scene`.
 - **TypeScript** — `strict: true`, `jsx: "react-jsx"`, `moduleResolution: "bundler"`, `noEmit: true`.
-- **Three.js / R3F** — the R3F skill (`react-three-finder`) is available to assist with Three.js patterns. (Note: the system's skill list says `react-three-fiber`.)
+- **Three.js / R3F** — the `react-three-fiber` skill is available to assist with Three.js patterns.
 
 # 3D model
 
@@ -32,11 +32,11 @@ Read `node_modules/next/dist/docs/` before writing code — breaking changes fro
   ```
 - The file is `.jsx` (not `.tsx`), so it lacks full type safety. The `Model` component is a **named export** (`export function Model`), not a default export.
 - **Regeneration hazard** — after regenerating, verify that `useGLTF` and `useGLTF.preload` use the same path (both should be `/models/keyboard.glb`). The generator may produce mismatched paths.
-- Model file: `public/models/keyboard.glb`.
+- Model files: `public/models/keyboard.glb` (keys + base) and `public/models/floor.glb` (ground plane, preloaded via `useGLTF` in Scene.tsx).
 
 # Materials & textures (Scene.tsx)
 
-All material customisation happens in `app/Scene.tsx` via a `useLayoutEffect` that traverses the loaded glTF. Three named materials are matched: `keys_light`, `keys_dark`, `base`.
+All material customization happens in `app/Scene.tsx` via a `useLayoutEffect` that traverses the loaded glTF. Three named materials are matched: `keys_light`, `keys_dark`, `base`.
 
 - **Key labels** — `createLabelMap()` composites `keys.webp` (mask) with two colors per pixel via Canvas. Light keys get `#E7A779` bg / `#663919` labels; dark keys get the inverse. The result is applied as `mat.map` with `mat.color = 0xffffff`.
 - **Key roughness** — `public/textures/keyboard/keys_roughness.jpg` doubles as `roughnessMap` and `bumpMap` (bumpScale: 2).
