@@ -8,6 +8,8 @@ export interface KeyColors {
   base?: string;
 }
 
+export type DarkKeyMode = "idle" | "add" | "remove";
+
 export const PRESETS: { name: string; colors: KeyColors }[] = [
   {
     name: "Default",
@@ -99,9 +101,17 @@ function Strip({ colors: c }: { colors: KeyColors }) {
 interface Props {
   colors: KeyColors;
   onChange: (colors: KeyColors) => void;
+  darkKeysEnabled: boolean;
+  onDarkKeysEnabledChange: (enabled: boolean) => void;
+  darkKeyMode: DarkKeyMode;
+  onDarkKeyModeChange: (mode: DarkKeyMode) => void;
 }
 
-export default function ConfiguratorPanel({ colors, onChange }: Props) {
+export default function ConfiguratorPanel({
+  colors, onChange,
+  darkKeysEnabled, onDarkKeysEnabledChange,
+  darkKeyMode, onDarkKeyModeChange,
+}: Props) {
   const active = activePreset(colors);
   return (
     <nav className="flex flex-col gap-1">
@@ -122,11 +132,66 @@ export default function ConfiguratorPanel({ colors, onChange }: Props) {
           </button>
         );
       })}
+
+      <div className="flex items-center justify-between pt-3 border-t border-zinc-800 mt-2">
+        <span className="text-xs font-medium text-zinc-400">DARK KEYS</span>
+        <button
+          onClick={() => onDarkKeysEnabledChange(!darkKeysEnabled)}
+          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+            darkKeysEnabled ? "bg-zinc-300" : "bg-zinc-800"
+          }`}
+          aria-label="Toggle dark keys"
+        >
+          <span
+            className={`inline-block size-4 rounded-full bg-white transition-transform ${
+              darkKeysEnabled ? "translate-x-[18px]" : "translate-x-0.5"
+            }`}
+          />
+        </button>
+      </div>
+
+      {darkKeysEnabled && (
+        <div>
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => onDarkKeyModeChange(darkKeyMode === "add" ? "idle" : "add")}
+              className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition-all ${
+                darkKeyMode === "add"
+                  ? "bg-white text-black shadow-sm"
+                  : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+              }`}
+            >
+              + Add
+            </button>
+            <button
+              onClick={() => onDarkKeyModeChange(darkKeyMode === "remove" ? "idle" : "remove")}
+              className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition-all ${
+                darkKeyMode === "remove"
+                  ? "bg-white text-black shadow-sm"
+                  : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+              }`}
+            >
+              - Remove
+            </button>
+          </div>
+          {darkKeyMode !== "idle" && (
+            <p className="mt-1.5 text-[10px] text-zinc-500 text-center">
+              {darkKeyMode === "add"
+                ? "Click a key to add it"
+                : "Click a key to remove it"}
+            </p>
+          )}
+        </div>
+      )}
     </nav>
   );
 }
 
-export function MobileWidget({ colors, onChange }: Props) {
+export function MobileWidget({
+  colors, onChange,
+  darkKeysEnabled, onDarkKeysEnabledChange,
+  darkKeyMode, onDarkKeyModeChange,
+}: Props) {
   const active = activePreset(colors);
   return (
     <div className="fixed inset-x-4 bottom-4 z-50 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-3 backdrop-blur-xl lg:hidden">
@@ -149,6 +214,48 @@ export function MobileWidget({ colors, onChange }: Props) {
           );
         })}
       </nav>
+
+      <div className="flex items-center justify-between pt-2 mt-2 border-t border-zinc-800">
+        <span className="text-[10px] font-medium text-zinc-400">DARK KEYS</span>
+        <button
+          onClick={() => onDarkKeysEnabledChange(!darkKeysEnabled)}
+          className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${
+            darkKeysEnabled ? "bg-zinc-300" : "bg-zinc-800"
+          }`}
+          aria-label="Toggle dark keys"
+        >
+          <span
+            className={`inline-block size-3 rounded-full bg-white transition-transform ${
+              darkKeysEnabled ? "translate-x-[14px]" : "translate-x-0.5"
+            }`}
+          />
+        </button>
+      </div>
+
+      {darkKeysEnabled && (
+        <div className="flex gap-1 mt-1.5">
+          <button
+            onClick={() => onDarkKeyModeChange(darkKeyMode === "add" ? "idle" : "add")}
+            className={`flex-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold transition-all ${
+              darkKeyMode === "add"
+                ? "bg-white text-black shadow-sm"
+                : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+            }`}
+          >
+            +Add
+          </button>
+          <button
+            onClick={() => onDarkKeyModeChange(darkKeyMode === "remove" ? "idle" : "remove")}
+            className={`flex-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold transition-all ${
+              darkKeyMode === "remove"
+                ? "bg-white text-black shadow-sm"
+                : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+            }`}
+          >
+            -Remove
+          </button>
+        </div>
+      )}
     </div>
   );
 }

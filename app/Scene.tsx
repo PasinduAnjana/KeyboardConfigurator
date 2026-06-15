@@ -23,6 +23,7 @@ import {
 import { Model } from "@/Keyboard";
 import ConfiguratorPanel, {
   type KeyColors,
+  type DarkKeyMode,
   MobileWidget,
 } from "@/app/ConfiguratorPanel";
 
@@ -234,8 +235,20 @@ function SceneContent({
   darkBg,
   darkLabel,
   base,
+  darkKeysEnabled,
+  customDarkKeys,
+  onInitDarkKeys,
+  onToggleKey,
+  darkKeyMode,
   onReady,
-}: KeyColors & { onReady?: () => void }) {
+}: KeyColors & {
+  darkKeysEnabled: boolean;
+  customDarkKeys: string[] | null;
+  onInitDarkKeys: (defaults: string[]) => void;
+  onToggleKey: (keyName: string) => void;
+  darkKeyMode: DarkKeyMode;
+  onReady?: () => void;
+}) {
   useEffect(() => {
     onReady?.();
   }, [onReady]);
@@ -245,7 +258,9 @@ function SceneContent({
   const targetY = useRef<Map<string, number>>(new Map());
   const playKeystroke = useKeystrokeSound();
 
-  const { nodes } = useGLTF("/models/keyboard.glb");
+  const { nodes, materials } = useGLTF("/models/keyboard.glb");
+  const originallyDarkRef = useRef<Set<string>>(new Set());
+
   const geoToName = useMemo(() => {
     const map = new Map<string, string>();
     for (const [name, node] of Object.entries(nodes)) {
@@ -344,6 +359,48 @@ function SceneContent({
     base,
   ]);
 
+  // Record original dark key assignment from the model
+  useLayoutEffect(() => {
+    if (!modelRef.current || !geoToName.size) return;
+    const origDark = new Set<string>();
+    modelRef.current.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+      const name = geoToName.get(child.geometry.uuid);
+      if (!name || name === "Base" || name === "base_back" || name === "typeC") return;
+      const mat = child.material;
+      if (mat instanceof THREE.MeshStandardMaterial && mat.name === "keys_dark") {
+        origDark.add(name);
+      }
+    });
+    originallyDarkRef.current = origDark;
+    if (customDarkKeys === null) {
+      onInitDarkKeys(Array.from(origDark));
+    }
+  }, [geoToName, onInitDarkKeys, customDarkKeys]);
+
+  // Apply dark key material assignments based on user configuration
+  useLayoutEffect(() => {
+    if (!modelRef.current || !geoToName.size) return;
+    const lightMat = materials.keys_light as THREE.MeshStandardMaterial;
+    const darkMat = materials.keys_dark as THREE.MeshStandardMaterial;
+
+    modelRef.current.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+      const name = geoToName.get(child.geometry.uuid);
+      if (!name || name === "Base" || name === "base_back" || name === "typeC") return;
+
+      let isDark: boolean;
+      if (!darkKeysEnabled) {
+        isDark = false;
+      } else if (customDarkKeys !== null) {
+        isDark = customDarkKeys.includes(name);
+      } else {
+        isDark = originallyDarkRef.current.has(name);
+      }
+      child.material = isDark ? darkMat : lightMat;
+    });
+  }, [geoToName, materials, darkKeysEnabled, customDarkKeys]);
+
   useEffect(() => {
     const ctrl = controlsRef.current;
     if (!ctrl) return;
@@ -385,12 +442,25 @@ function SceneContent({
       if (!(e.object instanceof THREE.Mesh)) return;
       const name = geoToName.get(e.object.geometry.uuid);
       if (!name) return;
+
+      if (darkKeyMode !== "idle") {
+        const isCurrentlyDark =
+          customDarkKeys?.includes(name) ?? originallyDarkRef.current.has(name);
+        if (
+          (darkKeyMode === "add" && !isCurrentlyDark) ||
+          (darkKeyMode === "remove" && isCurrentlyDark)
+        ) {
+          onToggleKey(name);
+        }
+        return;
+      }
+
       const origY = originalY.current.get(name);
       if (origY === undefined) return;
       targetY.current.set(name, origY - PRESS_DEPTH);
       playKeystroke();
     },
-    [geoToName, playKeystroke],
+    [geoToName, playKeystroke, darkKeyMode, customDarkKeys, onToggleKey],
   );
 
   const handlePointerUp = useCallback(
@@ -448,9 +518,29 @@ export default function Scene() {
     darkLabel: "#E7A779",
   });
   const [ready, setReady] = useState(false);
+  const [darkKeysEnabled, setDarkKeysEnabled] = useState(true);
+  const [customDarkKeys, setCustomDarkKeys] = useState<string[] | null>(null);
+  const [darkKeyMode, setDarkKeyMode] = useState<DarkKeyMode>("idle");
+
+  const handleInitDarkKeys = useCallback((defaults: string[]) => {
+    setCustomDarkKeys((prev) => prev ?? defaults);
+  }, []);
+
+  const handleToggleKey = useCallback((keyName: string) => {
+    setCustomDarkKeys((prev) => {
+      if (!prev) return [keyName];
+      return prev.includes(keyName)
+        ? prev.filter((k) => k !== keyName)
+        : [...prev, keyName];
+    });
+  }, []);
 
   return (
-    <div className="h-screen w-full relative bg-zinc-950 overflow-hidden">
+    <div
+      className={`h-screen w-full relative bg-zinc-950 overflow-hidden ${
+        darkKeyMode !== "idle" ? "cursor-crosshair" : ""
+      }`}
+    >
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center z-20 bg-zinc-950">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -470,7 +560,15 @@ export default function Scene() {
           <AdaptiveDpr pixelated />
           <AdaptiveEvents />
           <Suspense fallback={null}>
-            <SceneContent {...colors} onReady={() => setReady(true)} />
+            <SceneContent
+              {...colors}
+              darkKeysEnabled={darkKeysEnabled}
+              customDarkKeys={customDarkKeys}
+              onInitDarkKeys={handleInitDarkKeys}
+              onToggleKey={handleToggleKey}
+              darkKeyMode={darkKeyMode}
+              onReady={() => setReady(true)}
+            />
           </Suspense>
         </Canvas>
       </div>
@@ -483,11 +581,38 @@ export default function Scene() {
 
       <div className="absolute top-14 right-0 bottom-0 w-72 z-10 p-6 backdrop-blur-2xl bg-zinc-950/40 hidden lg:block pointer-events-none">
         <div className="pointer-events-auto">
-          <ConfiguratorPanel colors={colors} onChange={setColors} />
+          <ConfiguratorPanel
+            colors={colors}
+            onChange={setColors}
+            darkKeysEnabled={darkKeysEnabled}
+            onDarkKeysEnabledChange={setDarkKeysEnabled}
+            darkKeyMode={darkKeyMode}
+            onDarkKeyModeChange={setDarkKeyMode}
+          />
         </div>
       </div>
 
-      <MobileWidget colors={colors} onChange={setColors} />
+      <MobileWidget
+        colors={colors}
+        onChange={setColors}
+        darkKeysEnabled={darkKeysEnabled}
+        onDarkKeysEnabledChange={setDarkKeysEnabled}
+        darkKeyMode={darkKeyMode}
+        onDarkKeyModeChange={setDarkKeyMode}
+      />
+
+      <div className="absolute top-16 lg:bottom-6 lg:top-auto left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5">
+        <svg viewBox="0 0 16 16" fill="currentColor" className="size-3.5 text-white shrink-0">
+          <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1ZM7 5a1 1 0 1 1 2 0 1 1 0 0 1-2 0Zm1 3a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1Z" />
+        </svg>
+        <span className="text-xs text-white transition-opacity duration-300">
+          {darkKeyMode === "add"
+            ? "Click a key to mark it as dark"
+            : darkKeyMode === "remove"
+              ? "Click a dark key to remove it"
+              : "Press keys on your keyboard to see them type"}
+        </span>
+      </div>
     </div>
   );
 }
