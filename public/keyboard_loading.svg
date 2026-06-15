@@ -1,0 +1,43 @@
+<svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    /* ✨ Animation for the keys */
+    .key {
+      fill: #ffffff;
+      animation: typingWave 1.2s infinite ease-in-out;
+      transform-origin: center;
+    }
+
+    /* ⏱️ Staggering the animation delays to create a wave */
+    .k1 { animation-delay: 0.0s; }
+    .k2 { animation-delay: 0.15s; }
+    .k3 { animation-delay: 0.3s; }
+    .k4 { animation-delay: 0.45s; }
+    .k5 { animation-delay: 0.6s; }
+
+    @keyframes typingWave {
+      0%, 100% { 
+        opacity: 0.2; 
+        transform: translateY(0); 
+      }
+      50% { 
+        opacity: 1; 
+        transform: translateY(-2px); 
+      }
+    }
+  </style>
+
+  <!-- 🔲 Keyboard Base / Outline -->
+  <rect x="2" y="2" width="96" height="36" rx="4" fill="none" stroke="#ffffff" stroke-width="2"/>
+  
+  <!-- 🔢 Top Row Keys -->
+  <rect class="key k1" x="8"  y="8" width="10" height="10" rx="2"/>
+  <rect class="key k2" x="22" y="8" width="10" height="10" rx="2"/>
+  <rect class="key k3" x="36" y="8" width="10" height="10" rx="2"/>
+  <rect class="key k4" x="50" y="8" width="10" height="10" rx="2"/>
+  <rect class="key k5" x="64" y="8" width="28" height="10" rx="2"/> 
+  
+  <!-- 🔤 Bottom Row Keys -->
+  <rect class="key k2" x="8"  y="22" width="24" height="10" rx="2"/> 
+  <rect class="key k3" x="36" y="22" width="42" height="10" rx="2"/> 
+  <rect class="key k4" x="82" y="22" width="10" height="10" rx="2"/>
+</svg>

@@ -230,7 +230,9 @@ function SceneContent({
   darkBg,
   darkLabel,
   base,
-}: KeyColors) {
+  onReady,
+}: KeyColors & { onReady?: () => void }) {
+  useEffect(() => { onReady?.(); }, [onReady]);
   const modelRef = useRef<THREE.Group>(null);
   const controlsRef = useRef<ElementRef<typeof OrbitControls>>(null);
   const originalY = useRef<Map<string, number>>(new Map());
@@ -439,23 +441,27 @@ export default function Scene() {
     darkBg: "#663919",
     darkLabel: "#E7A779",
   });
+  const [ready, setReady] = useState(false);
 
   return (
     <div className="h-screen w-full relative bg-zinc-950 overflow-hidden">
+      {!ready && (
+        <div className="absolute inset-0 flex items-center justify-center z-20 bg-zinc-950">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/keyboard_loading.svg"
+            alt="Loading"
+            className="size-16 opacity-60"
+          />
+        </div>
+      )}
       <div className="absolute inset-0">
         <Canvas
           shadows={{ type: THREE.PCFShadowMap }}
           camera={{ position: [2, 1.5, 2], fov: 40 }}
         >
-          <Suspense
-            fallback={
-              <mesh>
-                <boxGeometry args={[0.5, 0.5, 0.5]} />
-                <meshBasicMaterial wireframe color="gray" />
-              </mesh>
-            }
-          >
-            <SceneContent {...colors} />
+          <Suspense fallback={null}>
+            <SceneContent {...colors} onReady={() => setReady(true)} />
           </Suspense>
         </Canvas>
       </div>
