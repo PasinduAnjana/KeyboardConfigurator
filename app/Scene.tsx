@@ -13,6 +13,8 @@ import {
 import * as THREE from "three";
 import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
 import {
+  AdaptiveDpr,
+  AdaptiveEvents,
   Environment,
   OrbitControls,
   useGLTF,
@@ -166,8 +168,8 @@ function Lighting() {
         penumbra={0.4}
         intensity={80}
         castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
+        shadow-mapSize-width={512}
+        shadow-mapSize-height={512}
       />
     </>
   );
@@ -457,9 +459,12 @@ export default function Scene() {
       )}
       <div className="absolute inset-0">
         <Canvas
+          dpr={[1, 1.5]}
           shadows={{ type: THREE.PCFShadowMap }}
           camera={{ position: [2, 1.5, 2], fov: 40 }}
         >
+          <AdaptiveDpr pixelated />
+          <AdaptiveEvents />
           <Suspense fallback={null}>
             <SceneContent {...colors} onReady={() => setReady(true)} />
           </Suspense>
