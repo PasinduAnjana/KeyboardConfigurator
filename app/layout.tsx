@@ -16,6 +16,17 @@ export const metadata: Metadata = {
   title: "Keyboard Configurator",
   description:
     "A web-based keyboard configurator built with Next.js and Three.js.",
+  openGraph: {
+    title: "Keyboard Configurator",
+    description:
+      "A web-based keyboard configurator built with Next.js and Three.js.",
+    type: "website",
+    images: [{ url: "/preview.webp" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/preview.webp"],
+  },
 };
 
 export default function RootLayout({
